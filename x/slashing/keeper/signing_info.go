@@ -37,6 +37,21 @@ func (k Keeper) SetValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress
 	store.Set(types.ValidatorSigningInfoKey(address), bz)
 }
 
+// ResetValidatorSigningInfo resets the validator signing info to the nil state except if its tombstoned.
+// If it's tombstoned, only that fact is retained; otherwise, it is deleted entirely.
+func (k Keeper) ResetValidatorSigningInfo(ctx sdk.Context, address sdk.ConsAddress) {
+	info, found := k.GetValidatorSigningInfo(ctx, address)
+	if !found {
+		return
+	}
+	if info.Tombstoned {
+		return
+	} else {
+		store := ctx.KVStore(k.storeKey)
+		store.Delete(types.ValidatorSigningInfoKey(address))
+	}
+}
+
 // IterateValidatorSigningInfos iterates over the stored ValidatorSigningInfo
 func (k Keeper) IterateValidatorSigningInfos(ctx sdk.Context,
 	handler func(address sdk.ConsAddress, info types.ValidatorSigningInfo) (stop bool),
